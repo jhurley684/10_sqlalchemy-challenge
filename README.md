@@ -5,74 +5,153 @@ As a matter of time management, I moved on to the next problems and may come bac
 
 ![sql.png](sql.png)
 
-## Background
+Congratulations! You've decided to treat yourself to a long holiday vacation in Honolulu, Hawaii! To help with your trip planning, you need to do some climate analysis on the area. The following outlines what you need to do.
 
-It is a beautiful spring day, and it is two weeks since you have been hired as a new data engineer at Pewlett Hackard. Your first major task is a research project on employees of the corporation from the 1980s and 1990s. All that remain of the database of employees from that period are six CSV files.
+## Step 1 - Climate Analysis and Exploration
 
-In this assignment, you will design the tables to hold data in the CSVs, import the CSVs into a SQL database, and answer questions about the data. In other words, you will perform:
+To begin, use Python and SQLAlchemy to do basic climate analysis and data exploration of your climate database. All of the following analysis should be completed using SQLAlchemy ORM queries, Pandas, and Matplotlib.
 
-1. Data Modeling and Data Engineering
-2. Data Analysis
+* Use the provided [starter notebook](climate_starter.ipynb) and [hawaii.sqlite](Resources/hawaii.sqlite) files to complete your climate analysis and data exploration.
+* Use SQLAlchemy `create_engine` to connect to your sqlite database.
+* Use SQLAlchemy `automap_base()` to reflect your tables into classes and save a reference to those classes called `Station` and `Measurement`.
+* Link Python to the database by creating an SQLAlchemy session.
+* **Important** Don't forget to close out your session at the end of your notebook.
+
+### Precipitation Analysis
+
+* Start by finding the most recent date in the data set.
+* Using this date, retrieve the last 12 months of precipitation data by querying the 12 preceding months of data. **Note** you do not pass in the date as a variable to your query.
+* Select only the `date` and `prcp` values.
+* Load the query results into a Pandas DataFrame and set the index to the date column.
+* Sort the DataFrame values by `date`.
+* Plot the results using the DataFrame `plot` method.
+  ![precipitation](Images/precipitation.png)
+* Use Pandas to print the summary statistics for the precipitation data.
 
 
-## Instructions
+### Station Analysis
 
-### Data Modeling
+* Design a query to calculate the total number of stations in the dataset.
+* 
+* Design a query to find the most active stations (i.e. which stations have the most rows?).
 
-Inspect the CSVs and sketch out an ERD of the tables. Feel free to use a tool like [http://www.quickdatabasediagrams.com](http://www.quickdatabasediagrams.com).
+  * List the stations and observation counts in descending order.
+  * Which station id has the highest number of observations?
+  * Using the most active station id, calculate the lowest, highest, and average temperature.
+  * Hint: You will need to use a function such as `func.min`, `func.max`, `func.avg`, and `func.count` in your queries.
 
-### Data Engineering
+* Design a query to retrieve the last 12 months of temperature observation data (TOBS).
 
-* Use the information you have to create a table schema for each of the six CSV files. Remember to specify data types, primary keys, foreign keys, and other constraints.
+  * Filter by the station with the highest number of observations.
+  * Query the last 12 months of temperature observation data for this station.
+  * Plot the results as a histogram with `bins=12`.
+    ![station-histogram](Images/station-histogram.png)
 
-  * For the primary keys check to see if the column is unique, otherwise create a [composite key](https://en.wikipedia.org/wiki/Compound_key). Which takes two primary keys in order to uniquely identify a row.
-  * Be sure to create tables in the correct order to handle foreign keys.
+* Close out your session.
 
-* Import each CSV file into the corresponding SQL table. **Note** be sure to import the data in the same order that the tables were created and account for the headers when importing to avoid errors.
+- - -
 
-### Data Analysis
+## Step 2 - Climate App
 
-Once you have a complete database, create queries to do the following:
+Now that you have completed your initial analysis, design a Flask API based on the queries that you have just developed.
 
-1. List the following details of each employee: employee number, last name, first name, sex, and salary.
-2. List first name, last name, and hire date for employees who were hired in 1986.
-3. List the manager of each department with the following information: department number, department name, the manager's employee number, last name, first name.
-4. List the department of each employee with the following information: employee number, last name, first name, and department name.
-5. List first name, last name, and sex for employees whose first name is "Hercules" and last names begin with "B."
-6. List all employees in the Sales department, including their employee number, last name, first name, and department name.
-7. List all employees in the Sales and Development departments, including their employee number, last name, first name, and department name.
-8. In descending order, list the frequency count of employee last names, i.e., how many employees share each last name.
+* Use Flask to create your routes.
 
-## Bonus (Optional)
+### Routes
 
-As you examine the data, you are overcome with a creeping suspicion that the dataset is fake. You surmise that your boss handed you spurious data in order to test the data engineering skills of a new employee. To confirm your hunch, you decide to take the following steps to generate a visualization of the data, with which you will confront your boss:
+* `/`
 
-1. Import the SQL database into Pandas. (Yes, you could read the CSVs directly in Pandas, but you are, after all, trying to prove your technical mettle.) This step may require some research. Feel free to use the code below to get started. **Be sure to make any necessary modifications for your username, password, host, port, and database name:**
+  * Home page.
+  * List all routes that are available.
+* `/api/v1.0/precipitation`
+  * Convert the query results to a dictionary using `date` as the key and `prcp` as the value.
+  * Return the JSON representation of your dictionary.
+* `/api/v1.0/stations`
+  * Return a JSON list of stations from the dataset.
 
-   ```sql
-   from sqlalchemy import create_engine
-   engine = create_engine('postgresql://localhost:5432/<your_db_name>')
-   connection = engine.connect()
-   ```
+* `/api/v1.0/tobs`
+  * Query the dates and temperature observations of the most active station for the last year of data.
+  * Return a JSON list of temperature observations (TOBS) for the previous year.
 
-* Consult [SQLAlchemy documentation](https://docs.sqlalchemy.org/en/latest/core/engines.html#postgresql) for more information.
+* `/api/v1.0/<stat>` and `/api/v1.0/<start>/<end>`
+  * Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
+  * When given the start only, calculate `TMIN`, `TAVG`, and `TMAX` for all dates greater than and equal to the start date.
+  * When given the start and the end date, calculate the `TMIN`, `TAVG`, and `TMAX` for dates between the start and end date inclusive.
 
-* If using a password, do not upload your password to your GitHub repository. See [https://www.youtube.com/watch?v=2uaTPmNvH0I](https://www.youtube.com/watch?v=2uaTPmNvH0I) and [https://help.github.com/en/github/using-git/ignoring-files](https://help.github.com/en/github/using-git/ignoring-files) for more information.
+## Hints
 
-2. Create a histogram to visualize the most common salary ranges for employees.
+* You will need to join the station and measurement tables for some of the queries.
 
-3. Create a bar chart of average salary by title.
+* Use Flask `jsonify` to convert your API data into a valid JSON response object.
 
-## Epilogue
+- - -
 
-Evidence in hand, you march into your boss's office and present the visualization. With a sly grin, your boss thanks you for your work. On your way out of the office, you hear the words, "Search your ID number." You look down at your badge to see that your employee ID number is 499942.
+## Bonus: Other Recommended Analyses
 
-## Submission
+* The following are optional challenge queries. These are highly recommended to attempt, but not required for the homework.
 
-* Create an image file of your ERD.
-* Create a `.sql` file of your table schemata.
-* Create a `.sql` file of your queries.
-* (Optional) Create a Jupyter Notebook of the bonus analysis.
-* Create and upload a repository with the above files to GitHub and post a link on BootCamp Spot.
-* Ensure your repository has regular commits and a thorough README.md file
+* Use the provided [temp_analysis_bonus_1_starter.ipynb](temp_analysis_bonus_1_starter.ipynb) and [temp_analysis_bonus_1_starter](temp_analysis_bonus_2_starter.ipynb) starter notebooks for each bonus challenge.
+
+### Temperature Analysis I
+
+* Hawaii is reputed to enjoy mild weather all year. Is there a meaningful difference between the temperature in, for example, June and December?
+
+* Use pandas to perform this portion.
+
+  * Convert the date column format from string to datetime.
+
+  * Set the date column as the DataFrame index
+
+  * Drop the date column
+
+* Identify the average temperature in June at all stations across all available years in the dataset. Do the same for December temperature.
+
+* Use the t-test to determine whether the difference in the means, if any, is statistically significant. Will you use a paired t-test, or an unpaired t-test? Why?
+
+### Temperature Analysis II
+
+* You are looking to take a trip from August first to August seventh of this year, but are worried that the weather will be less than ideal. Using historical data in the dataset find out what the temperature has previously looked like.
+
+* The starter notebook contains a function called `calc_temps` that will accept a start date and end date in the format `%Y-%m-%d`. The function will return the minimum, average, and maximum temperatures for that range of dates.
+
+* Use the `calc_temps` function to calculate the min, avg, and max temperatures for your trip using the matching dates from a previous year (i.e., use "2017-08-01").
+
+* Plot the min, avg, and max temperature from your previous query as a bar chart.
+
+  * Use "Trip Avg Temp" as the title.
+
+  * Use the average temperature as the bar height (y value).
+
+  * Use the peak-to-peak (TMAX-TMIN) value as the y error bar (YERR).
+
+    ![temperature](Images/temperature.png)
+
+### Daily Rainfall Average
+
+* Now that you have an idea of the temperature lets check to see what the rainfall has been, you don't want a when it rains the whole time!
+
+* Calculate the rainfall per weather station using the previous year's matching dates.
+
+  * Sort this in descending order by precipitation amount and list the station, name, latitude, longitude, and elevation.
+
+
+### Daily Temperature Normals
+
+* Calculate the daily normals for the duration of your trip. Normals are the averages for the min, avg, and max temperatures. You are provided with a function called `daily_normals` that will calculate the daily normals for a specific date. This date string will be in the format `%m-%d`. Be sure to use all historic TOBS that match that date string.
+
+  * Set the start and end date of the trip.
+
+  * Use the date to create a range of dates.
+
+  * Strip off the year and save a list of strings in the format `%m-%d`.
+
+  * Use the `daily_normals` function to calculate the normals for each date string and append the results to a list called `normals`.
+
+* Load the list of daily normals into a Pandas DataFrame and set the index equal to the date.
+
+* Use Pandas to plot an area plot (`stacked=False`) for the daily normals.
+
+  ![daily-normals](Images/daily-normals.png)
+
+* Close out your session.
 
